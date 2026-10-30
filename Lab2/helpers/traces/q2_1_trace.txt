@@ -1,0 +1,23 @@
+?- trace.
+true.
+
+[trace] ?- requires(visionapp, driver).
+   Call: (12) requires(visionapp, driver) ? creep
+   Call: (13) depends_on(visionapp, driver) ? creep
+   Fail: (13) depends_on(visionapp, driver) ? creep
+   Redo: (12) requires(visionapp, driver) ? creep
+   Call: (13) depends_on(visionapp, _17230) ? creep
+   Exit: (13) depends_on(visionapp, pytorch) ? creep
+   Call: (13) requires(pytorch, driver) ? creep
+   Call: (14) depends_on(pytorch, driver) ? creep
+   Fail: (14) depends_on(pytorch, driver) ? creep
+   Redo: (13) requires(pytorch, driver) ? creep
+   Call: (14) depends_on(pytorch, _22554) ? creep
+   Exit: (14) depends_on(pytorch, cuda) ? creep
+   Call: (14) requires(cuda, driver) ? creep
+   Call: (15) depends_on(cuda, driver) ? creep
+   Exit: (15) depends_on(cuda, driver) ? creep
+   Exit: (14) requires(cuda, driver) ? creep
+   Exit: (13) requires(pytorch, driver) ? creep
+   Exit: (12) requires(visionapp, driver) ? creep
+true .

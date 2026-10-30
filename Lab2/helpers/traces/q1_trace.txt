@@ -1,0 +1,29 @@
+?- trace.
+true.
+
+[trace] ?- violates_policy(anna).
+   Call: (12) violates_policy(anna) ? creep
+   Call: (13) publishes(anna, _14444) ? creep
+   Call: (14) uploaded_to_public_repo(anna, _14444) ? creep
+   Exit: (14) uploaded_to_public_repo(anna, medset) ? creep
+   Exit: (13) publishes(anna, medset) ? creep
+   Call: (13) sensitive(medset) ? creep
+   Call: (14) dataset(medset) ? creep
+   Exit: (14) dataset(medset) ? creep
+   Call: (14) contains_patient_data(medset) ? creep
+   Exit: (14) contains_patient_data(medset) ? creep
+   Exit: (13) sensitive(medset) ? creep
+   Call: (13) not_authorized(anna, medset) ? creep
+   Call: (14) intern(anna, _24168) ? creep
+   Exit: (14) intern(anna, visionlab) ? creep
+   Call: (14) owns(visionlab, medset) ? creep
+   Exit: (14) owns(visionlab, medset) ? creep
+   Call: (14) sensitive(medset) ? creep
+   Call: (15) dataset(medset) ? creep
+   Exit: (15) dataset(medset) ? creep
+   Call: (15) contains_patient_data(medset) ? creep
+   Exit: (15) contains_patient_data(medset) ? creep
+   Exit: (14) sensitive(medset) ? creep
+   Exit: (13) not_authorized(anna, medset) ? creep
+   Exit: (12) violates_policy(anna) ? creep
+true.

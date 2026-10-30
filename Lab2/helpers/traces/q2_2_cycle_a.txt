@@ -1,0 +1,17 @@
+?- requires_a(visionapp, P).
+P = pytorch ;
+P = opencv ;
+P = cuda ;
+P = driver ;
+P = pytorch ;
+P = cuda ;
+P = driver ;
+P = pytorch ;
+P = cuda ;
+P = driver ;
+P = pytorch ;
+P = cuda ;
+P = driver .
+
+?- call_with_time_limit(10, requires_a(cuda, opencv)).
+ERROR: Unhandled exception: Time limit exceeded

@@ -1,0 +1,7 @@
+?- requires(visionapp, P).
+P = pytorch ;
+P = opencv ;
+P = cuda ;
+P = driver ;
+P = numpy ;
+false.

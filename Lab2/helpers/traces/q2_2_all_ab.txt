@@ -1,0 +1,14 @@
+?- requires_a(visionapp, P).
+P = pytorch ;
+P = opencv ;
+P = cuda ;
+P = driver ;
+P = numpy ;
+false.
+
+?- requires_b(visionapp, P).
+P = driver ;
+P = cuda ;
+P = numpy ;
+P = pytorch ;
+P = opencv.

@@ -1,0 +1,38 @@
+?- trace.
+true.
+
+[trace] ?- requires_b(visionapp, driver).
+   Call: (12) requires_b(visionapp, driver) ? creep
+   Call: (13) depends_on(visionapp, _14602) ? creep
+   Exit: (13) depends_on(visionapp, pytorch) ? creep
+   Call: (13) requires_b(pytorch, driver) ? creep
+   Call: (14) depends_on(pytorch, _17262) ? creep
+   Exit: (14) depends_on(pytorch, cuda) ? creep
+   Call: (14) requires_b(cuda, driver) ? creep
+   Call: (15) depends_on(cuda, _19922) ? creep
+   Exit: (15) depends_on(cuda, driver) ? creep
+   Call: (15) requires_b(driver, driver) ? creep
+   Call: (16) depends_on(driver, _22582) ? creep
+   Exit: (16) depends_on(driver, pytorch) ? creep
+   Call: (16) requires_b(pytorch, driver) ? creep
+   Call: (17) depends_on(pytorch, _25242) ? creep
+   Exit: (17) depends_on(pytorch, cuda) ? creep
+   Call: (17) requires_b(cuda, driver) ? creep
+   Call: (18) depends_on(cuda, _27902) ? creep
+   Exit: (18) depends_on(cuda, driver) ? creep
+   Call: (18) requires_b(driver, driver) ? creep
+   Call: (19) depends_on(driver, _30562) ? creep
+   Exit: (19) depends_on(driver, pytorch) ? creep
+   Call: (19) requires_b(pytorch, driver) ? creep
+   Call: (20) depends_on(pytorch, _33222) ? creep
+   Exit: (20) depends_on(pytorch, cuda) ? creep
+   Call: (20) requires_b(cuda, driver) ? abort
+
+?- requires_b(visionapp, driver).
+ERROR: Stack limit (64.0Mb) exceeded
+ERROR:   Stack sizes: local: 45.3Mb, global: 2.3Mb, trail: 0Kb
+ERROR:   Stack depth: 296,753, last-call: 0%, Choice points: 296,746
+ERROR:   Possible non-terminating recursion:
+ERROR:     [296,752] user:requires_b(pytorch, driver)
+ERROR:     [296,751] user:requires_b(driver, driver)
+   Exception: (296,752) requires_b(pytorch, driver) ? abort
