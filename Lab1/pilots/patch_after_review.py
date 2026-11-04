@@ -6,7 +6,7 @@ import sys
 
 import nbformat
 
-PATH = "/Users/doom/Desktop/SC3000-Assignments/Lab1/NanoGPT-Math/dpo_reasoning/dpo.ipynb"
+PATH = "/Users/doom/Desktop/Coding/2026/SC3000-Assignments/Lab1/NanoGPT-Math/dpo_reasoning/dpo.ipynb"
 
 FIXES = {
     0: [

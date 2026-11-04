@@ -1,0 +1,256 @@
+% Report for SC3000 Assignment 2, in the official NeurIPS 2026 style (neurips_2026.sty, unchanged).
+% Code comes from the .pl files and traces from helpers/traces/ (run make_traces.py to redo them).
+% Build from Lab2/:  tectonic helpers/team_Assignment3.tex --outdir .
+\documentclass{article}
+
+\usepackage[preprint,nonatbib]{neurips_2026}
+\usepackage[T1]{fontenc}
+\usepackage[hidelinks]{hyperref}
+\usepackage{booktabs}
+\usepackage{fancyvrb}
+\usepackage{microtype}
+\usepackage{tabularx}
+
+\renewcommand{\ttdefault}{lmtt}
+
+% The style prints "Preprint." at the bottom of page 1. This is a course report, so drop it.
+\makeatletter
+\renewcommand{\@notice}{}
+\setlength{\@fptop}{0pt}   % a page with only figures starts at the top, not the middle
+\makeatother
+
+\hyphenation{pytorch opencv visionapp numpy}
+
+\fvset{fontsize=\footnotesize, frame=lines, framesep=6pt, samepage=true}
+
+\newcommand{\team}{team}          % prefix of the .pl file names: change it when you rename them
+\newcommand{\p}[1]{\mathrm{#1}}   % predicate or constant in a formula
+
+\title{SC3000 Artificial Intelligence, Assignment 2:\\ Learning to Use Prolog as a Logic Programming Tool}
+
+\author{%
+  Lingyi LIU \\ Matric No.\ U2340111G \\ Tutorial group TEL2 \And
+  [Name 2] \\ Matric No.\ [U0000000B] \\ Tutorial group TEL2 \And
+  [Name 3] \\ Matric No.\ [U0000000C] \\ Tutorial group TEL2 \AND
+  \normalfont Team [team name], Nanyang Technological University
+}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+This report writes two problems as Prolog knowledge bases and shows the proofs as SWI-Prolog traces.
+In Exercise 1, we translate a research data policy into first-order logic and Prolog, and prove that anna violates it.
+In Exercise 2, we define a recursive rule for software dependencies, compare two orders of its clauses,
+and explain why a cyclic dependency can make the search run forever.
+All traces are real output from an interactive SWI-Prolog 10.0.2 session: \texttt{trace.} before the query, then \texttt{<enter>} (creep) at each step.
+\end{abstract}
+
+\begin{center}
+  \begin{tabular}{ll}
+    \toprule
+    Member & Contribution \\
+    \midrule
+    Lingyi LIU & Wrote and ran the code, and wrote the answers \\
+    {[Name 2]} & [what this member did] \\
+    {[Name 3]} & [what this member did] \\
+    \bottomrule
+  \end{tabular}
+\end{center}
+
+\newpage
+
+\section{Research Data Sharing (Exercise 1)}
+
+\subsection{First-order logic}
+
+Table~\ref{tab:fol} translates each statement. $\p{Intern}(x, g)$ reads ``$x$ is an intern at research group $g$'',
+and $\p{Authorized}(x, d)$ reads ``$x$ is authorized to publish $d$''.
+
+\begin{table}[!htb]
+  \caption{First-order logic for each statement of Exercise 1.}
+  \label{tab:fol}
+  \centering
+  \small
+  \renewcommand{\arraystretch}{1.3}
+  \begin{tabularx}{\linewidth}{@{}>{\raggedright\arraybackslash}p{0.35\linewidth}>{\raggedright\arraybackslash}X@{}}
+    \toprule
+    Statement & First-order logic \\
+    \midrule
+    A research group called visionlab owns a dataset called medset. &
+      $\p{ResearchGroup}(\p{visionlab}) \land \p{Dataset}(\p{medset}) \land \p{Owns}(\p{visionlab}, \p{medset})$ \\
+    The dataset contains patient data. &
+      $\p{ContainsPatientData}(\p{medset})$ \\
+    anna is an intern at visionlab. &
+      $\p{Intern}(\p{anna}, \p{visionlab})$ \\
+    anna uploaded medset to a public repository. &
+      $\p{UploadedToPublicRepo}(\p{anna}, \p{medset})$ \\
+    Any dataset containing patient data is considered sensitive. &
+      $\forall d\,[\p{Dataset}(d) \land \p{ContainsPatientData}(d) \rightarrow \p{Sensitive}(d)]$ \\
+    An intern is not authorized to publish sensitive datasets owned by their research group. &
+      $\forall x\,\forall g\,\forall d\,[\p{Intern}(x, g) \land \p{Owns}(g, d) \land \p{Sensitive}(d) \rightarrow \neg\p{Authorized}(x, d)]$ \\
+    Uploading a dataset to a public repository is considered publishing the dataset. &
+      $\forall x\,\forall d\,[\p{UploadedToPublicRepo}(x, d) \rightarrow \p{Publishes}(x, d)]$ \\
+    Anyone who publishes a sensitive dataset without authorization violates the research data policy. &
+      $\forall x\,\forall d\,[\p{Publishes}(x, d) \land \p{Sensitive}(d) \land \neg\p{Authorized}(x, d) \rightarrow \p{ViolatesPolicy}(x)]$ \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\subsection{Prolog clauses}
+
+A Prolog rule (a Horn clause) cannot have a negative conclusion, so we cannot write $\neg\p{Authorized}(x, d)$ as the head of a rule.
+Instead, we add an ordinary predicate, \texttt{not\_authorized(X, D)}, which means ``X is not authorized to publish D''.
+
+Notably, we did not write \texttt{\textbackslash+ authorized(X, D)} (negation as failure), because \texttt{\textbackslash+} only means ``this cannot be found in the knowledge base''.
+We have no \texttt{authorized} facts, so the check would pass for everyone and the intern rule would never be used.
+A professor who uploaded a sensitive dataset would also count as violating the policy, even though the statements only say that interns are not authorized.
+
+Figure~\ref{fig:kb1} shows the clauses.
+
+\begin{figure}[!htb]
+  \VerbatimInput{../\team_qn_1_2.pl}
+  \caption{Knowledge base for Exercise 1 (\texttt{\team\_qn\_1\_2.pl}).}
+  \label{fig:kb1}
+\end{figure}
+
+\clearpage
+
+\subsection{Proof that anna violates the research data policy}
+
+The query \texttt{violates\_policy(anna)} matches the head of the \texttt{violates\_policy} rule, which leaves three subgoals:
+
+\begin{enumerate}
+  \item \texttt{publishes(anna, D)}: the publishing rule and the upload fact give \textbf{D = medset}.
+  \item \texttt{sensitive(medset)}: the sensitivity rule and the facts \texttt{dataset(medset)} and \texttt{contains\_patient\_data(medset)} prove it.
+  \item \texttt{not\_authorized(anna, medset)}: the intern rule needs three more things. \texttt{intern(anna,~G)} gives G = visionlab, \texttt{owns(visionlab, medset)} is a fact, and \texttt{sensitive(medset)} is proved again, as in step 2.
+\end{enumerate}
+
+All three subgoals are proved, so \texttt{violates\_policy(anna)} is \textbf{true}.
+Figure~\ref{fig:trace1} shows the trace.
+
+\begin{figure}[!htb]
+  \VerbatimInput{traces/q1_trace.txt}
+  \caption{Trace of the query \texttt{violates\_policy(anna)}.}
+  \label{fig:trace1}
+\end{figure}
+
+\clearpage
+
+\section{Software Dependency Reasoning (Exercise 2)}
+
+\subsection{Knowledge base and recursive rule}
+
+Figure~\ref{fig:kb21} shows the facts and the rule. The first clause is the base case (a direct dependency).
+The second clause is the recursive case: X depends on some Z, and Z requires Y.
+
+\begin{figure}[!htb]
+  \VerbatimInput{../\team_qn_2_1.pl}
+  \caption{Knowledge base for Exercise 2.1 (\texttt{\team\_qn\_2\_1.pl}).}
+  \label{fig:kb21}
+\end{figure}
+
+Pressing \texttt{;} returns every package that visionapp requires:
+
+\VerbatimInput{traces/q2_1_all.txt}
+
+So \textbf{visionapp requires pytorch, opencv, cuda, driver and numpy}.
+
+Figure~\ref{fig:trace21} shows the trace for \texttt{requires(visionapp, driver)}.
+The package driver is not a direct dependency of visionapp, so the first clause fails and Prolog backtracks into the
+recursive clause. That clause follows visionapp $\rightarrow$ pytorch, where the direct check fails again, and then pytorch $\rightarrow$ cuda, where
+\texttt{depends\_on(cuda, driver)} succeeds. This proves the chain visionapp $\rightarrow$ pytorch $\rightarrow$ cuda $\rightarrow$ driver.
+The answer \texttt{true .} means a choice point was still open (for example the opencv branch), and we pressed \texttt{<enter>} instead of asking for more proofs.
+
+\begin{figure}[!htb]
+  \VerbatimInput{traces/q2_1_trace.txt}
+  \caption{Trace of the query \texttt{requires(visionapp, driver)}.}
+  \label{fig:trace21}
+\end{figure}
+
+\subsection{Clause order and cyclic dependencies}
+
+Both versions are in one file under different names, \texttt{requires\_a} (Version A) and \texttt{requires\_b} (Version B),
+so they run on the same facts (Figure~\ref{fig:kb22}).
+
+\begin{figure}[!htb]
+  \VerbatimInput{../\team_qn_2_2.pl}
+  \caption{Knowledge base for Exercise 2.2 (\texttt{\team\_qn\_2\_2.pl}).}
+  \label{fig:kb22}
+\end{figure}
+
+\subsubsection{Effect of clause order}
+
+Clause order changes the proof search because Prolog tries a predicate's clauses from top to bottom.
+It searches depth-first: it goes as deep as it can along one path, and backs up to try another when that path fails.
+Figure~\ref{fig:traces-ab} shows both traces side by side.
+
+\begin{itemize}
+  \item \textbf{Version A} first checks whether driver is a direct dependency, and only goes one level deeper if it is not.
+        It checks visionapp (no), pytorch (no), then cuda (yes). The proof takes 18 steps and never looks at driver's own dependencies.
+  \item \textbf{Version B} goes deeper first, following visionapp $\rightarrow$ pytorch $\rightarrow$ cuda $\rightarrow$ driver.
+        The package driver has no dependencies, so both clauses of \texttt{requires\_b(driver, driver)} fail.
+        Prolog backs up to \texttt{requires\_b(cuda, driver)} and tries its second clause, which succeeds.
+        This dead end (depth 15--16 in the trace) is why the proof takes 22 steps.
+\end{itemize}
+
+\begin{figure}[!htb]
+  \fvset{fontsize=\scriptsize}
+  \begin{minipage}[t]{0.495\linewidth}
+    \VerbatimInput[label={Version A (base clause first)}]{traces/q2_2_trace_a.txt}
+  \end{minipage}\hfill
+  \begin{minipage}[t]{0.495\linewidth}
+    \VerbatimInput[label={Version B (recursive clause first)}]{traces/q2_2_trace_b.txt}
+  \end{minipage}
+  \caption{Traces of \texttt{requires(visionapp, driver)} under each clause order.}
+  \label{fig:traces-ab}
+\end{figure}
+
+Both versions mean the same in logic, so they prove the same facts. Only the order of the proof steps changes,
+so the order of the answers changes too: Version A returns the direct dependencies first, and Version B returns the deepest first (Figure~\ref{fig:answers-ab}).
+
+\begin{figure}[!htb]
+  \begin{minipage}[t]{0.48\linewidth}
+    \VerbatimInput[label={Version A}, firstline=1, lastline=7]{traces/q2_2_all_ab.txt}
+  \end{minipage}\hfill
+  \begin{minipage}[t]{0.48\linewidth}
+    \VerbatimInput[label={Version B}, firstline=9, lastline=14]{traces/q2_2_all_ab.txt}
+  \end{minipage}
+  \caption{All answers to \texttt{requires(visionapp, P)} under each clause order.}
+  \label{fig:answers-ab}
+\end{figure}
+
+\subsubsection{Effect of a cyclic dependency}
+
+Adding the fact \texttt{depends\_on(driver, pytorch)} creates a cycle: pytorch $\rightarrow$ cuda $\rightarrow$ driver $\rightarrow$ pytorch.
+The problem is that a query may never finish (\textbf{non-termination}).
+Prolog does not remember which goals it is already trying to prove, so it can go round this cycle forever.
+The results below are with the cycle fact uncommented.
+
+\emph{Version A.} \texttt{requires\_a(visionapp, driver)} still gives its first answer, because the first clause finds driver at cuda,
+before the search gets back to pytorch. Asking for more answers goes round the cycle forever: the same answers repeat, and numpy is never reached.
+However, a query that should be false, such as \texttt{requires\_a(cuda, opencv)}, never finishes and gives no error, so we stopped it with a time limit (Figure~\ref{fig:cycle-a}).
+
+\begin{figure}[!htb]
+  \VerbatimInput{traces/q2_2_cycle_a.txt}
+  \caption{Version A on the cyclic knowledge base. Top: we stopped asking for more answers after 13; they keep repeating. Bottom: a query that should be false, stopped after 10 seconds.}
+  \label{fig:cycle-a}
+\end{figure}
+
+\emph{Version B.} Even the true query \texttt{requires\_b(visionapp, driver)} gets no answer. The recursive clause is always tried first,
+so Prolog keeps following cuda $\rightarrow$ driver $\rightarrow$ pytorch $\rightarrow$ cuda $\rightarrow$ \dots\ and never tries the second clause.
+Each round leaves that untried clause waiting, so the stack keeps growing until SWI-Prolog raises a stack-overflow error.
+With the default 1~GB limit it was still running after 5 minutes, so we used \texttt{-{}-stack-limit=64m}, which fails in seconds (Figure~\ref{fig:cycle-b}).
+
+\begin{figure}[!htb]
+  \VerbatimInput{traces/q2_2_cycle_b.txt}
+  \caption{Version B on the cyclic knowledge base. Top: the trace, aborted once the repeating pattern was clear. Bottom: the same query without tracing.}
+  \label{fig:cycle-b}
+\end{figure}
+
+The cause is the cycle together with Prolog's depth-first search, which does not check for loops.
+Changing the clause order only decides whether an answer happens to be found before the search starts looping.
+Neither order removes the loop.
+
+\end{document}

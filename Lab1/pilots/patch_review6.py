@@ -3,7 +3,7 @@ Each old string must appear exactly once in its cell."""
 import json
 import sys
 
-PATH = "/Users/doom/Desktop/SC3000-Assignments/Lab1/NanoGPT-Math/dpo_reasoning/dpo.ipynb"
+PATH = "/Users/doom/Desktop/Coding/2026/SC3000-Assignments/Lab1/NanoGPT-Math/dpo_reasoning/dpo.ipynb"
 
 FIXES = {
     4: [
